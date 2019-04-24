@@ -1,0 +1,40 @@
+<resources>
+
+    <!-- Base application theme. -->
+    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <!-- Customize your theme here. -->
+        <item name="colorPrimary">@color/colorGrey</item>
+        <item name="colorPrimaryDark">@color/colorBlack</item>
+        <item name="colorAccent">@color/colorRed_500</item>
+        <item name="android:textColor">@color/colorRed_500</item>
+        <item name="android:timePickerDialogTheme">@style/TimePickerDialog</item>
+        <item name="android:fontFamily">monospace</item>
+    </style>
+
+    <style name="AppTheme.Launcher">
+        <item name="android:windowBackground">@drawable/launch_screen</item>
+        <!-- для Android 5+ вы можете поменять цвет colorPrimaryDark, чтобы соответствовать цвету windowBackground -->
+        <!-- <item name="colorPrimaryDark">@android:color/white</item> -->
+    </style>
+
+    <style name="AlertDialogSettings" parent="AlertDialog.AppCompat">
+        <item name="colorPrimary">@color/colorGrey</item>
+        <item name="colorPrimaryDark">@color/colorBlack</item>
+        <item name="android:textColor">@color/colorWhite</item>
+        <item name="android:background">@color/colorCustom</item>
+        <item name="android:colorAccent">@color/colorRed_500</item>
+
+        <item name="android:fontFamily">monospace</item>
+    </style>
+
+    <style name="AlertDialogCustom" parent="Theme.AppCompat.Dialog">
+        <item name="android:textColor">@color/colorRed_500</item>
+        <item name="android:colorBackground">@color/colorCustom</item>
+
+        <item name="android:fontFamily">monospace</item>
+    </style>
+
+    <style name="TimePickerDialog" parent="Theme.AppCompat.DayNight.Dialog">
+    </style>
+
+</resources>

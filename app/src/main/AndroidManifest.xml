@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    package="com.golda.recallme">
+
+    <uses-permission android:name="android.permission.VIBRATE"/>
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.WAKE_LOCK"/>
+    <uses-permission android:name="android.permission.DISABLE_KEYGUARD"/>
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
+    <uses-permission android:name="android.permission.INTERNET"/>
+
+    <application
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme"
+        android:name=".App"
+        tools:replace="android:appComponentFactory"
+        android:appComponentFactory="whateverString">
+
+        <activity
+            android:name="com.golda.recallme.ui.activity.MainActivity"
+            android:launchMode="singleTask"
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme.Launcher">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+        </activity>
+        <activity
+            android:name="com.golda.recallme.ui.activity.AddAlarmActivity"
+            android:launchMode="singleTask"
+            android:parentActivityName="com.golda.recallme.ui.activity.MainActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme"/>
+        <activity
+            android:name="com.golda.recallme.ui.activity.BootAlarmActivity"
+            android:launchMode="singleTask"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.AppCompat.NoActionBar"/>
+        <activity
+            android:name="com.golda.recallme.ui.activity.EditAlarmActivity"
+            android:launchMode="singleTask"
+            android:parentActivityName="com.golda.recallme.ui.activity.MainActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme"/>
+        <activity
+            android:name="com.golda.recallme.ui.activity.RingActivity"
+            android:label="@string/ringActivityTitle"
+            android:launchMode="singleTask"
+            android:screenOrientation="portrait"
+            android:theme="@style/AlertDialogCustom"/>
+        <activity
+            android:name="com.golda.recallme.ui.activity.RemindActivity"
+            android:label="@string/remindActivityTitle"
+            android:launchMode="singleTask"
+            android:screenOrientation="portrait"
+            android:theme="@style/AlertDialogCustom"/>
+        <activity
+            android:name="com.golda.recallme.ui.activity.RepeatActivity"
+            android:label="@string/repeatActivityTitle"
+            android:launchMode="singleTask"
+            android:screenOrientation="portrait"
+            android:theme="@style/AlertDialogCustom"/>
+        <activity
+            android:name="com.golda.recallme.ui.activity.RepeatChoiceActivity"
+            android:label="@string/repeatChoiceActivityTitle"
+            android:launchMode="singleTask"
+            android:screenOrientation="portrait"
+            android:theme="@style/AlertDialogCustom"/>
+        <activity
+            android:name="com.golda.recallme.ui.activity.DeleteActivity"
+            android:label="@string/deleteActivityTitle"
+            android:launchMode="singleTask"
+            android:screenOrientation="portrait"
+            android:theme="@style/AlertDialogCustom"/>
+        <activity
+            android:name="com.golda.recallme.ui.activity.SettingsActivity"
+            android:launchMode="singleTask"
+            android:screenOrientation="portrait"
+            android:theme="@style/AlertDialogSettings"/>
+
+        <receiver
+            android:name="com.golda.recallme.ui.receiver.AlarmClockReceiver"
+            android:enabled="true"
+            android:exported="true">
+        </receiver>
+
+        <service
+            android:name="com.golda.recallme.service.AlarmClockService"
+            android:enabled="true"
+            android:exported="true"/>
+
+        <receiver
+            android:name="com.golda.recallme.ui.receiver.BootReceiver"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED"/>
+            </intent-filter>
+        </receiver>
+
+    </application>
+</manifest>
