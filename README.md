@@ -1,4 +1,4 @@
-# Recallme
+# Recall Me
 Alarm clock ring and show weather forecast.
 Used API from OpenWeather.
 Used components: Room, LiveData, Retrofit, ButterKnife, SharedPreferences, Services, BroadcastReceiver, RingtoneManager
