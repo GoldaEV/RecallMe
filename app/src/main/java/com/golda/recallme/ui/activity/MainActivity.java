@@ -150,6 +150,7 @@ public class MainActivity extends AppCompatActivity implements AlarmAdapter.Alar
     private Observer<WeatherResponseModel> weatherObserver = new Observer<WeatherResponseModel>() {
         @Override
         public void onChanged(@Nullable WeatherResponseModel weatherResponseModel) {
+
             Weather weather[] = weatherResponseModel.getWeathers();
             tvTitle.setText(R.string.current_weather);
             tvLocation.setText(weatherResponseModel.getName());
