@@ -2,6 +2,7 @@ package com.golda.recallme.ui.activity;
 
 import android.app.Dialog;
 import android.app.TimePickerDialog;
+import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -22,6 +23,7 @@ import com.golda.recallme.R;
 import com.golda.recallme.alarm.AlarmManagerHelper;
 import com.golda.recallme.alarm.db.AlarmDBUtils;
 import com.golda.recallme.models.alarm.AlarmModel;
+import com.golda.recallme.ui.viewmodel.EditAlarmActivityViewModel;
 
 import java.util.Calendar;
 
@@ -33,6 +35,8 @@ import butterknife.OnClick;
  * Created by Evgeniy on 22.01.2019.
  */
 public class EditAlarmActivity extends AppCompatActivity implements View.OnClickListener {
+
+    EditAlarmActivityViewModel viewModel;
 
     @BindView(R.id.toolbar)
     Toolbar toolbar;
@@ -74,6 +78,8 @@ public class EditAlarmActivity extends AppCompatActivity implements View.OnClick
         setContentView(R.layout.activity_alarm);
         ButterKnife.bind(this);
 
+        viewModel = ViewModelProviders.of(this).get(EditAlarmActivityViewModel.class);
+
         setSupportActionBar(toolbar);
         ActionBar bar = getSupportActionBar();
         assert bar != null;
@@ -86,23 +92,22 @@ public class EditAlarmActivity extends AppCompatActivity implements View.OnClick
 
         int id = getIntent().getIntExtra(ALARM_CLOCK, 0);
 
-        AlarmModel alarmModel = AlarmDBUtils.getLiveAlarmModel(id);
-        initUI(alarmModel);
+        alarmModel = AlarmDBUtils.getLiveAlarmModel(id);
+        initUI();
     }
 
-    private void initUI(AlarmModel alarmModel) {
+    private void initUI() {
 
-        EditAlarmActivity.alarmModel = alarmModel;
 
-        tvRingtones.setText(EditAlarmActivity.alarmModel.ring);
-        switchVibration.setChecked(EditAlarmActivity.alarmModel.vibrate);
+        tvRingtones.setText(alarmModel.ring);
+        switchVibration.setChecked(alarmModel.vibrate);
         cvRepeat.setOnClickListener(this);
         cvRing.setOnClickListener(this);
         cvRemind.setOnClickListener(this);
-        switchWeather.setChecked(EditAlarmActivity.alarmModel.weather);
+        switchWeather.setChecked(alarmModel.weather);
 
-        int hour = EditAlarmActivity.alarmModel.hour;
-        int minute = EditAlarmActivity.alarmModel.minute;
+        int hour = alarmModel.hour;
+        int minute = alarmModel.minute;
 
         String h = String.valueOf(hour);
         String m = String.valueOf(minute);
@@ -116,13 +121,13 @@ public class EditAlarmActivity extends AppCompatActivity implements View.OnClick
         tvHours.setText(h);
         tvMin.setText(m);
 
-        switchVibration.setOnCheckedChangeListener((buttonView, isChecked) -> EditAlarmActivity.alarmModel.setVibrate(isChecked));
+        switchVibration.setOnCheckedChangeListener((buttonView, isChecked) -> alarmModel.setVibrate(isChecked));
 
-        switchWeather.setOnCheckedChangeListener((buttonView, isChecked) -> EditAlarmActivity.alarmModel.setWeather(isChecked));
+        switchWeather.setOnCheckedChangeListener((buttonView, isChecked) -> alarmModel.setWeather(isChecked));
 
-        tvRingtones.setText(EditAlarmActivity.alarmModel.ring);
-        tvRepeat.setText(EditAlarmActivity.alarmModel.repeat);
-        tvRemind.setText(getRemindString(EditAlarmActivity.alarmModel.remind));
+        tvRingtones.setText(alarmModel.ring);
+        tvRepeat.setText(alarmModel.repeat);
+        tvRemind.setText(getRemindString(alarmModel.remind));
     }
 
     @OnClick(R.id.alarm_cv_time)
