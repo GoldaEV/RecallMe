@@ -24,7 +24,7 @@ public class AlarmManagerHelper {
 
     @TargetApi(19)
     public static void startAlarmClock(Context context, int alarmId) {
-        AlarmModel alarm = AlarmDBUtils.getLiveAlarmModel(alarmId);
+        AlarmModel alarm = AlarmDBUtils.getAlarmModel(alarmId);
         Intent intent = new Intent(context, BootAlarmActivity.class);
         intent.putExtra(ALARM_CLOCK, alarm);
         PendingIntent pi = PendingIntent.getActivity(context, alarm.id, intent, PendingIntent.FLAG_CANCEL_CURRENT);

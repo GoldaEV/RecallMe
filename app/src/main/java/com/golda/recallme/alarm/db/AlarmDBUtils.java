@@ -1,7 +1,6 @@
 package com.golda.recallme.alarm.db;
 
 import android.arch.lifecycle.LiveData;
-import android.arch.lifecycle.MutableLiveData;
 
 import com.golda.recallme.App;
 import com.golda.recallme.models.alarm.AlarmModel;
@@ -14,7 +13,11 @@ import java.util.List;
 
 public class AlarmDBUtils {
 
-    public static AlarmModel getLiveAlarmModel(int id) {
+    public static LiveData<AlarmModel> getLiveAlarmModel(int id) {
+        return App.getInstance().getDatabase().alarmModelDao().getByLiveId(id);
+    }
+
+    public static AlarmModel getAlarmModel(int id) {
         return App.getInstance().getDatabase().alarmModelDao().getById(id);
     }
 

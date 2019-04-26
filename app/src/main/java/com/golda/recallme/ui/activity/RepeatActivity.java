@@ -1,5 +1,6 @@
 package com.golda.recallme.ui.activity;
 
+import android.app.AlarmManager;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -12,6 +13,8 @@ import android.widget.TextView;
 import com.golda.recallme.R;
 import com.golda.recallme.alarm.AlarmClockBuilder;
 import com.golda.recallme.alarm.AlarmClockLab;
+import com.golda.recallme.alarm.db.AlarmDBUtils;
+import com.golda.recallme.models.alarm.AlarmModel;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -32,10 +35,13 @@ public class RepeatActivity extends AppCompatActivity implements View.OnClickLis
     @BindView(R.id.repeat_choice)
     TextView tvChoice;
 
-    private AlarmClockLab alarmClockLab;
+    private AlarmModel alarmClockLab;
+    public static final String ALARM_CLOCK = "EXTRA_REPEAT";
 
-    public static Intent newIntent(Context context) {
-        return new Intent(context, RepeatActivity.class);
+    public static Intent newIntent(Context context, int id) {
+        Intent intent = new Intent(context, RepeatActivity.class);
+        intent.putExtra(ALARM_CLOCK, id);
+        return intent;
     }
 
     @Override
@@ -44,7 +50,8 @@ public class RepeatActivity extends AppCompatActivity implements View.OnClickLis
         setContentView(R.layout.activity_repeat);
         ButterKnife.bind(this);
 
-        alarmClockLab = new AlarmClockBuilder().builderLab(0);
+        int id = getIntent().getIntExtra(ALARM_CLOCK, 0);
+        alarmClockLab = AlarmDBUtils.getAlarmModel(id);
 
         tvOnce.setOnClickListener(this);
         tvWeekDay.setOnClickListener(this);
@@ -122,5 +129,11 @@ public class RepeatActivity extends AppCompatActivity implements View.OnClickLis
                 break;
         }
         finish();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        AlarmDBUtils.updateLiveAlarmClock(alarmClockLab);
     }
 }

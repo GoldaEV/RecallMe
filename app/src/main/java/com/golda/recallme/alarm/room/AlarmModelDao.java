@@ -22,6 +22,9 @@ public interface AlarmModelDao {
     LiveData<List<AlarmModel>> getAll();
 
     @Query("SELECT * FROM alarmmodel WHERE id = :id")
+    LiveData<AlarmModel> getByLiveId(int id);
+
+    @Query("SELECT * FROM alarmmodel WHERE id = :id")
     AlarmModel getById(int id);
 
     @Insert

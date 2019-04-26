@@ -156,17 +156,14 @@ public class AddAlarmActivity extends AppCompatActivity implements View.OnClickL
     }
 
 
-
-
-
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.alarm_cv_repeat:
-                startActivity(new Intent(RepeatActivity.newIntent(this)));
+                startActivity(new Intent(RepeatActivity.newIntent(this, alarmClockLab.id)));
                 break;
             case R.id.alarm_cv_ring:
-                startActivity(RingActivity.newIntent(this));
+                startActivity(RingActivity.newIntent(this,alarmClockLab.id));
                 break;
             case R.id.alarm_cv_remind:
                 startActivity(new Intent(this, RemindActivity.class));
@@ -200,8 +197,6 @@ public class AddAlarmActivity extends AppCompatActivity implements View.OnClickL
             tvMin.setText(min);
             alarmClockLab.setMinute(minute);
             alarmClockLab.setHour(hourOfDay);
-
-
         }
     }
 }

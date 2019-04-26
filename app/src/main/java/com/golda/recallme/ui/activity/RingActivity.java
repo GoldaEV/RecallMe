@@ -19,6 +19,8 @@ import android.widget.TextView;
 import com.golda.recallme.R;
 import com.golda.recallme.alarm.AlarmClockBuilder;
 import com.golda.recallme.alarm.AlarmClockLab;
+import com.golda.recallme.alarm.db.AlarmDBUtils;
+import com.golda.recallme.models.alarm.AlarmModel;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,14 +33,17 @@ import butterknife.ButterKnife;
  */
 public class RingActivity extends AppCompatActivity {
 
+    public static final String EXTRA_REPEAT = "EXTRA_REPEAT";
+
     @BindView(R.id.ring_list)
     RecyclerView rv_ringList;
 
     private List<String> ringList;
-    private AlarmClockLab alarmClockLab;
+    private AlarmModel alarmClockLab;
 
-    public static Intent newIntent(Context context) {
+    public static Intent newIntent(Context context, int id) {
         Intent intent = new Intent(context, RingActivity.class);
+        intent.putExtra(EXTRA_REPEAT, id);
         return intent;
     }
 
@@ -49,7 +54,8 @@ public class RingActivity extends AppCompatActivity {
         setContentView(R.layout.activity_ring);
         ButterKnife.bind(this);
 
-        alarmClockLab = new AlarmClockBuilder().builderLab(0);
+        int id = getIntent().getIntExtra(EXTRA_REPEAT, 0);
+        alarmClockLab = AlarmDBUtils.getAlarmModel(id);
 
         ringList = showRingList(this);
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
@@ -113,5 +119,11 @@ public class RingActivity extends AppCompatActivity {
                 finish();
             });
         }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        AlarmDBUtils.updateLiveAlarmClock(alarmClockLab);
     }
 }
