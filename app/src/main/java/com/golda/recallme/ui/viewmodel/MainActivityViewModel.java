@@ -8,13 +8,22 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.media.RingtoneManager;
+import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 
+import com.golda.recallme.R;
 import com.golda.recallme.alarm.AlarmClockBuilder;
 import com.golda.recallme.alarm.db.AlarmDBUtils;
+import com.golda.recallme.api.RetrofitApiProvider;
 import com.golda.recallme.models.alarm.AlarmModel;
+import com.golda.recallme.models.weather.WeatherResponseModel;
+import com.golda.recallme.models.weather.WeatherState;
 
 import java.util.List;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 import static android.content.Context.MODE_PRIVATE;
 
@@ -25,7 +34,8 @@ public class MainActivityViewModel extends AndroidViewModel {
     private static final String FLAG = "flag";
 
     LiveData<List<AlarmModel>> alarmList;
-    MutableLiveData<List<AlarmModel>> alarmList;
+    MutableLiveData<WeatherResponseModel> weather;
+    MutableLiveData<WeatherState> weatherState;
 
     public MainActivityViewModel(@NonNull Application application) {
         super(application);
@@ -91,4 +101,48 @@ public class MainActivityViewModel extends AndroidViewModel {
         }
         return ringName;
     }
+
+    public void updateWeather() {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getApplication().getApplicationContext());
+        String city = prefs.getString(getApplication().getString(R.string.pref_city_key), getApplication().getString(R.string.pref_city_default));
+        updateWeather(city);
+    }
+
+    public LiveData<WeatherResponseModel> getWeather() {
+        if (weather == null) {
+            weather = new MutableLiveData<>();
+            updateWeather();
+        }
+        return weather;
+    }
+
+    public LiveData<WeatherState> getWeatherState() {
+        if (weatherState == null) {
+            weatherState = new MutableLiveData<>();
+            updateWeather();
+        }
+        return weatherState;
+    }
+
+    private void updateWeather(String city) {
+        RetrofitApiProvider apiProvider = new RetrofitApiProvider();
+
+
+        apiProvider.getWeather(city, new Callback<WeatherResponseModel>() {
+            @Override
+            public void onResponse(Call<WeatherResponseModel> call, Response<WeatherResponseModel> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    weatherState.setValue(WeatherState.UPDATED);
+                    weather.setValue(response.body());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<WeatherResponseModel> call, Throwable t) {
+                weatherState.setValue(WeatherState.ERROR);
+            }
+        });
+    }
+
+
 }

@@ -1,9 +1,7 @@
 package com.golda.recallme.ui.activity;
 
 import android.arch.lifecycle.LiveData;
-import android.arch.lifecycle.MutableLiveData;
 import android.arch.lifecycle.Observer;
-import android.arch.lifecycle.ViewModel;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -24,10 +22,10 @@ import android.view.View;
 import android.widget.TextView;
 
 import com.golda.recallme.R;
-import com.golda.recallme.api.RetrofitApiProvider;
 import com.golda.recallme.models.alarm.AlarmModel;
 import com.golda.recallme.models.weather.Weather;
 import com.golda.recallme.models.weather.WeatherResponseModel;
+import com.golda.recallme.models.weather.WeatherState;
 import com.golda.recallme.service.AlarmClockService;
 import com.golda.recallme.ui.adapter.AlarmAdapter;
 import com.golda.recallme.ui.viewmodel.MainActivityViewModel;
@@ -42,9 +40,6 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import hotchemi.android.rate.AppRate;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 
 public class MainActivity extends AppCompatActivity implements AlarmAdapter.AlarmAdapterInterface {
 
@@ -65,15 +60,15 @@ public class MainActivity extends AppCompatActivity implements AlarmAdapter.Alar
     @BindView(R.id.tv_weather_title)
     TextView tvTitle;
 
-    private LiveData<List<AlarmModel>> alarmList;
     private AlarmAdapter alarmAdapter;
+    private MainActivityViewModel viewModel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setTheme(R.style.AppTheme);
         setContentView(R.layout.activity_main);
-        MainActivityViewModel viewModel = ViewModelProviders.of(this).get(MainActivityViewModel.class);
+        viewModel = ViewModelProviders.of(this).get(MainActivityViewModel.class);
 
         ButterKnife.bind(this);
         setSupportActionBar(toolbar);
@@ -91,11 +86,14 @@ public class MainActivity extends AppCompatActivity implements AlarmAdapter.Alar
 
         AppRate.showRateDialogIfMeetsConditions(this);
 
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-        String city = prefs.getString(getString(R.string.pref_city_key), getString(R.string.pref_city_default));
-        loadWeather(city);
+        LiveData<WeatherState> weatherState = viewModel.getWeatherState();
+        weatherState.observe(this, weatherStateObserver);
 
-        alarmList = viewModel.getAlarmList();
+        LiveData<WeatherResponseModel> weather = viewModel.getWeather();
+        weather.observe(this, weatherObserver);
+        viewModel.updateWeather();
+
+        LiveData<List<AlarmModel>> alarmList = viewModel.getAlarmList();
 
         alarmList.observe(this, alarmModels -> setData(alarmModels));
 
@@ -115,94 +113,9 @@ public class MainActivity extends AppCompatActivity implements AlarmAdapter.Alar
         startActivity(AddAlarmActivity.newIntent(MainActivity.this));
     }
 
-    private void loadWeather(String city) {
-        RetrofitApiProvider apiProvider = new RetrofitApiProvider();
-        apiProvider.getWeather(city, new Callback<WeatherResponseModel>() {
-            @Override
-            public void onResponse(Call<WeatherResponseModel> call, Response<WeatherResponseModel> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    Snackbar.make(cLayout, R.string.weather_update, Snackbar.LENGTH_SHORT)
-                            .setActionTextColor(Color.RED)
-                            .show();
-                    weatherIcon.setVisibility(View.VISIBLE);
-                    populateWeather(response);
-                }
-            }
-
-            @Override
-            public void onFailure(Call<WeatherResponseModel> call, Throwable t) {
-                Snackbar.make(cLayout, R.string.failure_network, Snackbar.LENGTH_SHORT)
-                        .setActionTextColor(Color.RED)
-                        .show();
-                tvTitle.setText(R.string.failure_network);
-                weatherIcon.setVisibility(View.VISIBLE);
-                weatherIcon.setIcon(MaterialDrawableBuilder.IconValue.WIFI_OFF);
-            }
-        });
-    }
-
-    private void populateWeather(Response<WeatherResponseModel> response) {
-        Weather weather[] = response.body().getWeathers();
-        tvTitle.setText(R.string.current_weather);
-        tvLocation.setText(response.body().getName());
-        tvCondition.setText(weather[0].getMain());
-
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
-        String tFormat = preferences.getString(getString(R.string.pref_temp_format_key), getString(R.string.pref_default_temp_format));
-
-        if (tFormat.equals(getString(R.string.pref_temp_celsius))) {
-            tvTemp.setText(WeatherTempConverter.convertToCelsius(response.body().getMain().getTemp()).intValue() + getString(R.string.cel));
-        } else {
-            tvTemp.setText(WeatherTempConverter.convertToFahrenheit(response.body().getMain().getTemp()).intValue() + getString(R.string.fahr));
-        }
-
-        switch (weather[0].getIcon()) {
-            case "01d":
-                weatherIcon.setIcon(MaterialDrawableBuilder.IconValue.WEATHER_SUNNY);
-                break;
-            case "01n":
-                weatherIcon.setIcon(MaterialDrawableBuilder.IconValue.WEATHER_NIGHT);
-                break;
-            case "02d":
-            case "02n":
-                weatherIcon.setIcon(MaterialDrawableBuilder.IconValue.WEATHER_PARTLYCLOUDY);
-                break;
-            case "03d":
-            case "03n":
-                weatherIcon.setIcon(MaterialDrawableBuilder.IconValue.WEATHER_CLOUDY);
-                break;
-            case "04d":
-            case "04n":
-                weatherIcon.setIcon(MaterialDrawableBuilder.IconValue.WEATHER_CLOUDY);
-                break;
-            case "09d":
-            case "09n":
-                weatherIcon.setIcon(MaterialDrawableBuilder.IconValue.WEATHER_RAINY);
-                break;
-            case "10d":
-            case "10n":
-                weatherIcon.setIcon(MaterialDrawableBuilder.IconValue.WEATHER_RAINY);
-                break;
-            case "11d":
-            case "11n":
-                weatherIcon.setIcon(MaterialDrawableBuilder.IconValue.WEATHER_LIGHTNING);
-                break;
-            case "13d":
-            case "13n":
-                weatherIcon.setIcon(MaterialDrawableBuilder.IconValue.WEATHER_SNOWY);
-                break;
-            case "50d":
-            case "50n":
-                weatherIcon.setIcon(MaterialDrawableBuilder.IconValue.WEATHER_FOG);
-                break;
-        }
-    }
-
     @OnClick(R.id.ib_refresh)
     public void OnRefresh() {
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-        String city = prefs.getString(getString(R.string.pref_city_key), getString(R.string.pref_city_default));
-        loadWeather(city);
+        viewModel.updateWeather();
     }
 
     @Override
@@ -224,9 +137,6 @@ public class MainActivity extends AppCompatActivity implements AlarmAdapter.Alar
         }
     }
 
-
-
-
     @Override
     public void onItemClick(AlarmModel model) {
         startActivity(new Intent(EditAlarmActivity.newIntent(this, model.id)));
@@ -237,5 +147,88 @@ public class MainActivity extends AppCompatActivity implements AlarmAdapter.Alar
         startActivity(new Intent(DeleteActivity.newIntent(MainActivity.this, id)));
     }
 
+    private Observer<WeatherResponseModel> weatherObserver = new Observer<WeatherResponseModel>() {
+        @Override
+        public void onChanged(@Nullable WeatherResponseModel weatherResponseModel) {
+            Weather weather[] = weatherResponseModel.getWeathers();
+            tvTitle.setText(R.string.current_weather);
+            tvLocation.setText(weatherResponseModel.getName());
+            tvCondition.setText(weather[0].getMain());
+
+            SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+            String tFormat = preferences.getString(getString(R.string.pref_temp_format_key), getString(R.string.pref_default_temp_format));
+
+            if (tFormat.equals(getString(R.string.pref_temp_celsius))) {
+                tvTemp.setText(WeatherTempConverter.convertToCelsius(weatherResponseModel.getMain().getTemp()).intValue() + getString(R.string.cel));
+            } else {
+                tvTemp.setText(WeatherTempConverter.convertToFahrenheit(weatherResponseModel.getMain().getTemp()).intValue() + getString(R.string.fahr));
+            }
+
+            switch (weather[0].getIcon()) {
+                case "01d":
+                    weatherIcon.setIcon(MaterialDrawableBuilder.IconValue.WEATHER_SUNNY);
+                    break;
+                case "01n":
+                    weatherIcon.setIcon(MaterialDrawableBuilder.IconValue.WEATHER_NIGHT);
+                    break;
+                case "02d":
+                case "02n":
+                    weatherIcon.setIcon(MaterialDrawableBuilder.IconValue.WEATHER_PARTLYCLOUDY);
+                    break;
+                case "03d":
+                case "03n":
+                    weatherIcon.setIcon(MaterialDrawableBuilder.IconValue.WEATHER_CLOUDY);
+                    break;
+                case "04d":
+                case "04n":
+                    weatherIcon.setIcon(MaterialDrawableBuilder.IconValue.WEATHER_CLOUDY);
+                    break;
+                case "09d":
+                case "09n":
+                    weatherIcon.setIcon(MaterialDrawableBuilder.IconValue.WEATHER_RAINY);
+                    break;
+                case "10d":
+                case "10n":
+                    weatherIcon.setIcon(MaterialDrawableBuilder.IconValue.WEATHER_RAINY);
+                    break;
+                case "11d":
+                case "11n":
+                    weatherIcon.setIcon(MaterialDrawableBuilder.IconValue.WEATHER_LIGHTNING);
+                    break;
+                case "13d":
+                case "13n":
+                    weatherIcon.setIcon(MaterialDrawableBuilder.IconValue.WEATHER_SNOWY);
+                    break;
+                case "50d":
+                case "50n":
+                    weatherIcon.setIcon(MaterialDrawableBuilder.IconValue.WEATHER_FOG);
+                    break;
+            }
+        }
+    };
+
+    private Observer<WeatherState> weatherStateObserver = new Observer<WeatherState>() {
+        @Override
+        public void onChanged(@Nullable WeatherState weatherState) {
+            if (weatherState != null) {
+                switch (weatherState) {
+                    case UPDATED:
+                        Snackbar.make(cLayout, R.string.weather_update, Snackbar.LENGTH_SHORT)
+                                .setActionTextColor(Color.RED)
+                                .show();
+                        weatherIcon.setVisibility(View.VISIBLE);
+                        break;
+                    case ERROR:
+                        Snackbar.make(cLayout, R.string.failure_network, Snackbar.LENGTH_SHORT)
+                                .setActionTextColor(Color.RED)
+                                .show();
+                        tvTitle.setText(R.string.failure_network);
+                        weatherIcon.setVisibility(View.VISIBLE);
+                        weatherIcon.setIcon(MaterialDrawableBuilder.IconValue.WIFI_OFF);
+                        break;
+                }
+            }
+        }
+    };
 
 }
