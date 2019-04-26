@@ -36,8 +36,7 @@ public class AlarmAdapter extends RecyclerView.Adapter {
 
     private AlarmAdapterInterface mListener;
 
-    public AlarmAdapter(AlarmAdapterInterface listener, List<AlarmModel> list) {
-        mList = list;
+    public AlarmAdapter(AlarmAdapterInterface listener) {
         mListener = listener;
         mContext = (Context) listener;
     }

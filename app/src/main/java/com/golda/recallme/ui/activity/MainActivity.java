@@ -1,12 +1,13 @@
 package com.golda.recallme.ui.activity;
 
+import android.arch.lifecycle.LiveData;
+import android.arch.lifecycle.MutableLiveData;
 import android.arch.lifecycle.Observer;
-import android.content.Context;
+import android.arch.lifecycle.ViewModel;
+import android.arch.lifecycle.ViewModelProviders;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.database.Cursor;
 import android.graphics.Color;
-import android.media.RingtoneManager;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
@@ -23,20 +24,18 @@ import android.view.View;
 import android.widget.TextView;
 
 import com.golda.recallme.R;
-import com.golda.recallme.alarm.AlarmClockBuilder;
-import com.golda.recallme.alarm.db.AlarmDBUtils;
 import com.golda.recallme.api.RetrofitApiProvider;
 import com.golda.recallme.models.alarm.AlarmModel;
 import com.golda.recallme.models.weather.Weather;
 import com.golda.recallme.models.weather.WeatherResponseModel;
 import com.golda.recallme.service.AlarmClockService;
 import com.golda.recallme.ui.adapter.AlarmAdapter;
+import com.golda.recallme.ui.viewmodel.MainActivityViewModel;
 import com.golda.recallme.weather.WeatherTempConverter;
 
 import net.steamcrafted.materialiconlib.MaterialDrawableBuilder;
 import net.steamcrafted.materialiconlib.MaterialIconView;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import butterknife.BindView;
@@ -66,23 +65,20 @@ public class MainActivity extends AppCompatActivity implements AlarmAdapter.Alar
     @BindView(R.id.tv_weather_title)
     TextView tvTitle;
 
-    private List<AlarmModel> alarmList;
+    private LiveData<List<AlarmModel>> alarmList;
     private AlarmAdapter alarmAdapter;
-
-    public static final String WEEK_DAY = "Week day";
-    private static final String BOOT = "boot";
-    private static final String FLAG = "flag";
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setTheme(R.style.AppTheme);
         setContentView(R.layout.activity_main);
+        MainActivityViewModel viewModel = ViewModelProviders.of(this).get(MainActivityViewModel.class);
+
         ButterKnife.bind(this);
         setSupportActionBar(toolbar);
         weatherIcon.setVisibility(View.INVISIBLE);
-        alarmList = new ArrayList<>();
+
 
         AppRate.with(this)
                 .setInstallDays(3)
@@ -99,9 +95,11 @@ public class MainActivity extends AppCompatActivity implements AlarmAdapter.Alar
         String city = prefs.getString(getString(R.string.pref_city_key), getString(R.string.pref_city_default));
         loadWeather(city);
 
-        init();
+        alarmList = viewModel.getAlarmList();
 
-        alarmAdapter = new AlarmAdapter(this, alarmList);
+        alarmList.observe(this, alarmModels -> setData(alarmModels));
+
+        alarmAdapter = new AlarmAdapter(this);
 
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setAdapter(alarmAdapter);
@@ -227,44 +225,7 @@ public class MainActivity extends AppCompatActivity implements AlarmAdapter.Alar
     }
 
 
-    private void initDB() {
-        AlarmClockBuilder clockBuilder = new AlarmClockBuilder();
-        AlarmModel alarmM = clockBuilder.enable(false)
-                .hour(7)
-                .minute(0)
-                .repeat(WEEK_DAY)
-                .sunday(false)
-                .monday(true)
-                .tuesday(true)
-                .wednesday(true)
-                .thursday(true)
-                .friday(true)
-                .saturday(false)
-                .ringPosition(0)
-                .ring(firstRing(this))
-                .volume(10)
-                .vibrate(true)
-                .remind(3)
-                .weather(true)
-                .build();
 
-        AlarmDBUtils.insertLiveAlarmClock(alarmM);
-    }
-
-    private String firstRing(Context context) {
-        RingtoneManager ringtoneManager = new RingtoneManager(context);
-        ringtoneManager.setType(RingtoneManager.TYPE_ALARM);
-        Cursor cursor = ringtoneManager.getCursor();
-        String ringName = null;
-
-        while (cursor.moveToNext()) {
-            ringName = cursor.getString(RingtoneManager.TITLE_COLUMN_INDEX);
-            if (ringName != null) {
-                break;
-            }
-        }
-        return ringName;
-    }
 
     @Override
     public void onItemClick(AlarmModel model) {
@@ -276,23 +237,5 @@ public class MainActivity extends AppCompatActivity implements AlarmAdapter.Alar
         startActivity(new Intent(DeleteActivity.newIntent(MainActivity.this, id)));
     }
 
-    private void init() {
-        SharedPreferences sharedPreferences = getSharedPreferences(BOOT, MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        boolean flag = sharedPreferences.getBoolean(FLAG, false);
 
-        if (!flag) {
-            initDB();
-            editor.putBoolean(FLAG, true);
-            editor.apply();
-        }
-
-        AlarmDBUtils.queryLiveAlarmClock().observe(this, new Observer<List<AlarmModel>>() {
-            @Override
-            public void onChanged(@Nullable List<AlarmModel> alarmModels) {
-                alarmList = alarmModels;
-                setData(alarmList);
-            }
-        });
-    }
 }
