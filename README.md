@@ -1,7 +1,7 @@
 # Recall Me
 Alarm clock ring and show weather forecast.
 Used API from OpenWeather.
-Used components: Room, LiveData, Retrofit, ButterKnife, SharedPreferences, Services, BroadcastReceiver, RingtoneManager
+Used components: MVVM, Room, LiveData, Retrofit, ButterKnife, SharedPreferences, Services, BroadcastReceiver, RingtoneManager
 # ScreenShots
 <img src="https://github.com/GoldaEV/RecallMe/blob/master/screenshots/Screenshot_2019-04-24-12-33-40-627_com.golda.recallme.png" height="320" />
 <img src="https://github.com/GoldaEV/RecallMe/blob/master/screenshots/Screenshot_2019-04-24-12-26-51-573_com.golda.recallme.png" height="320" />
