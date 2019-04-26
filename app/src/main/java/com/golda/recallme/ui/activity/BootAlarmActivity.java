@@ -85,11 +85,7 @@ public class BootAlarmActivity extends AppCompatActivity {
             loadWeather(city);
         }
 
-
         rvAlarmOff.setOnClickListener(v -> {
-            if (!alarm.repeat.equals(ONLY_ONCE)) {
-              //  AlarmManagerHelper.startAlarmClock(BootAlarmActivity.this, alarm.id);
-            }
             finish();
         });
     }

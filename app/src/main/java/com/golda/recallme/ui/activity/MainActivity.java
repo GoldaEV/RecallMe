@@ -93,6 +93,7 @@ public class MainActivity extends AppCompatActivity implements AlarmAdapter.Alar
         weather.observe(this, weatherObserver);
         viewModel.updateWeather();
 
+
         LiveData<List<AlarmModel>> alarmList = viewModel.getAlarmList();
 
         alarmList.observe(this, alarmModels -> setData(alarmModels));

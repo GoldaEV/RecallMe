@@ -2,10 +2,9 @@ package com.golda.recallme.ui.activity;
 
 import android.app.Dialog;
 import android.app.TimePickerDialog;
+import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
 import android.content.Intent;
-import android.database.Cursor;
-import android.media.RingtoneManager;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -21,10 +20,10 @@ import android.widget.TextView;
 import android.widget.TimePicker;
 
 import com.golda.recallme.R;
-import com.golda.recallme.alarm.AlarmClockBuilder;
 import com.golda.recallme.alarm.AlarmManagerHelper;
 import com.golda.recallme.alarm.db.AlarmDBUtils;
 import com.golda.recallme.models.alarm.AlarmModel;
+import com.golda.recallme.ui.viewmodel.AddAlarmActivityViewModel;
 
 import java.util.Calendar;
 
@@ -62,6 +61,7 @@ public class AddAlarmActivity extends AppCompatActivity implements View.OnClickL
     public static TextView tvMin;
 
     private static AlarmModel alarmClockLab;
+    private AddAlarmActivityViewModel viewModel;
 
     public static Intent newIntent(Context context) {
         return new Intent(context, AddAlarmActivity.class);
@@ -73,6 +73,8 @@ public class AddAlarmActivity extends AppCompatActivity implements View.OnClickL
         setContentView(R.layout.activity_alarm);
         ButterKnife.bind(this);
 
+        viewModel = ViewModelProviders.of(this).get(AddAlarmActivityViewModel.class);
+
         tvHours = findViewById(R.id.alarm_time_hours);
         tvMin = findViewById(R.id.alarm_time_min);
 
@@ -83,30 +85,12 @@ public class AddAlarmActivity extends AppCompatActivity implements View.OnClickL
         bar.setDisplayShowTitleEnabled(false);
         toolbarTitle.setText(R.string.addAlarmActivityTitle);
 
+        alarmClockLab = viewModel.getNewAlarmClock();
+
         initUI();
     }
 
     private void initUI() {
-        alarmClockLab = new AlarmClockBuilder().build();
-        alarmClockLab.setEnable(true);
-        int[] currentTime = getCurrentTime();
-        alarmClockLab.setHour(currentTime[0]);
-        alarmClockLab.setMinute(currentTime[1]);
-        alarmClockLab.setRepeat(getString(R.string.repeatWeekDay));
-        alarmClockLab.setSunday(false);
-        alarmClockLab.setMonday(true);
-        alarmClockLab.setTuesday(true);
-        alarmClockLab.setWednesday(true);
-        alarmClockLab.setThursday(true);
-        alarmClockLab.setFriday(true);
-        alarmClockLab.setSaturday(false);
-        alarmClockLab.setRingPosition(0);
-        alarmClockLab.setRing(firstRing(this));
-        alarmClockLab.setVolume(10);
-        alarmClockLab.setVibrate(false);
-        alarmClockLab.setRemind(3);
-        alarmClockLab.setWeather(false);
-
         tvRingtones.setText(alarmClockLab.ring);
         switchVibration.setChecked(alarmClockLab.vibrate);
         cvRepeat.setOnClickListener(this);
@@ -132,8 +116,8 @@ public class AddAlarmActivity extends AppCompatActivity implements View.OnClickL
         switchVibration.setOnCheckedChangeListener((buttonView, isChecked) -> alarmClockLab.setVibrate(isChecked));
 
         switchWeather.setOnCheckedChangeListener((buttonView, isChecked) -> alarmClockLab.setWeather(isChecked));
-
     }
+
 
     @OnClick(R.id.alarm_cv_time)
     public void OnTimeClick() {
@@ -143,11 +127,7 @@ public class AddAlarmActivity extends AppCompatActivity implements View.OnClickL
 
     @OnClick(R.id.floating_action_btn2)
     public void OnFAB2Click() {
-        int alarmId = AlarmDBUtils.insertLiveAlarmClock(alarmClockLab);
-        AlarmModel alarmModel = AlarmDBUtils.getLiveAlarmModel(alarmId);
-        if (alarmModel.enable) {
-            AlarmManagerHelper.startAlarmClock(AddAlarmActivity.this, alarmModel.id);
-        }
+        AlarmDBUtils.insertLiveAlarmClock(alarmClockLab);
         finish();
     }
 
@@ -175,27 +155,9 @@ public class AddAlarmActivity extends AppCompatActivity implements View.OnClickL
         return remindString;
     }
 
-    private String firstRing(Context context) {
-        RingtoneManager ringtoneManager = new RingtoneManager(context);
-        ringtoneManager.setType(RingtoneManager.TYPE_ALARM);
-        Cursor cursor = ringtoneManager.getCursor();
-        String ringName = null;
-        while (cursor.moveToNext()) {
-            ringName = cursor.getString(RingtoneManager.TITLE_COLUMN_INDEX);
-            if (ringName != null) {
-                break;
-            }
-        }
-        cursor.close();
-        return ringName;
-    }
 
-    private int[] getCurrentTime() {
-        Calendar time = Calendar.getInstance();
-        int hour = time.get(Calendar.HOUR_OF_DAY);
-        int minute = time.get(Calendar.MINUTE);
-        return new int[]{hour, minute};
-    }
+
+
 
     @Override
     public void onClick(View v) {

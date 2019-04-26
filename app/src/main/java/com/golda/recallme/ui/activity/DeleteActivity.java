@@ -34,7 +34,6 @@ public class DeleteActivity extends AppCompatActivity implements View.OnClickLis
         return intent;
     }
 
-
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -49,7 +48,6 @@ public class DeleteActivity extends AppCompatActivity implements View.OnClickLis
     @Override
     public void onClick(View v) {
         if (v.getId() == R.id.delete_ok) {
-            AlarmManagerHelper.cancelAlarmClock(this, id);
             AlarmDBUtils.deleteLiveAlarmClock(id);
         }
         finish();

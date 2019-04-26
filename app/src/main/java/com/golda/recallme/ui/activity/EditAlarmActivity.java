@@ -2,6 +2,9 @@ package com.golda.recallme.ui.activity;
 
 import android.app.Dialog;
 import android.app.TimePickerDialog;
+import android.arch.lifecycle.LiveData;
+import android.arch.lifecycle.MutableLiveData;
+import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
 import android.content.Intent;
@@ -23,6 +26,7 @@ import com.golda.recallme.R;
 import com.golda.recallme.alarm.AlarmManagerHelper;
 import com.golda.recallme.alarm.db.AlarmDBUtils;
 import com.golda.recallme.models.alarm.AlarmModel;
+import com.golda.recallme.models.weather.WeatherState;
 import com.golda.recallme.ui.viewmodel.EditAlarmActivityViewModel;
 
 import java.util.Calendar;
@@ -64,7 +68,7 @@ public class EditAlarmActivity extends AppCompatActivity implements View.OnClick
 
     public static final String ALARM_CLOCK = "alarm_clock";
 
-    private static AlarmModel alarmModel;
+    private static AlarmModel editableModel;
 
     public static Intent newIntent(Context context, int id) {
         Intent intent = new Intent(context, EditAlarmActivity.class);
@@ -92,22 +96,27 @@ public class EditAlarmActivity extends AppCompatActivity implements View.OnClick
 
         int id = getIntent().getIntExtra(ALARM_CLOCK, 0);
 
-        alarmModel = AlarmDBUtils.getLiveAlarmModel(id);
+        editableModel = viewModel.getAlarmModel(id);
+
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
         initUI();
     }
 
     private void initUI() {
 
-
-        tvRingtones.setText(alarmModel.ring);
-        switchVibration.setChecked(alarmModel.vibrate);
+        tvRingtones.setText(editableModel.ring);
+        switchVibration.setChecked(editableModel.vibrate);
         cvRepeat.setOnClickListener(this);
         cvRing.setOnClickListener(this);
         cvRemind.setOnClickListener(this);
-        switchWeather.setChecked(alarmModel.weather);
+        switchWeather.setChecked(editableModel.weather);
 
-        int hour = alarmModel.hour;
-        int minute = alarmModel.minute;
+        int hour = editableModel.hour;
+        int minute = editableModel.minute;
 
         String h = String.valueOf(hour);
         String m = String.valueOf(minute);
@@ -121,13 +130,13 @@ public class EditAlarmActivity extends AppCompatActivity implements View.OnClick
         tvHours.setText(h);
         tvMin.setText(m);
 
-        switchVibration.setOnCheckedChangeListener((buttonView, isChecked) -> alarmModel.setVibrate(isChecked));
+        switchVibration.setOnCheckedChangeListener((buttonView, isChecked) -> editableModel.setVibrate(isChecked));
 
-        switchWeather.setOnCheckedChangeListener((buttonView, isChecked) -> alarmModel.setWeather(isChecked));
+        switchWeather.setOnCheckedChangeListener((buttonView, isChecked) -> editableModel.setWeather(isChecked));
 
-        tvRingtones.setText(alarmModel.ring);
-        tvRepeat.setText(alarmModel.repeat);
-        tvRemind.setText(getRemindString(alarmModel.remind));
+        tvRingtones.setText(editableModel.ring);
+        tvRepeat.setText(editableModel.repeat);
+        tvRemind.setText(getRemindString(editableModel.remind));
     }
 
     @OnClick(R.id.alarm_cv_time)
@@ -138,9 +147,9 @@ public class EditAlarmActivity extends AppCompatActivity implements View.OnClick
 
     @OnClick(R.id.floating_action_btn2)
     public void OnFAB2Click() {
-        AlarmDBUtils.updateLiveAlarmClock(alarmModel);
-        if (alarmModel.enable) {
-            AlarmManagerHelper.startAlarmClock(EditAlarmActivity.this, alarmModel.id);
+        AlarmDBUtils.updateLiveAlarmClock(editableModel);
+        if (editableModel.enable) {
+            AlarmManagerHelper.startAlarmClock(EditAlarmActivity.this, editableModel.id);
         }
         finish();
     }
@@ -200,10 +209,8 @@ public class EditAlarmActivity extends AppCompatActivity implements View.OnClick
 
             tvHours.setText(hour);
             tvMin.setText(min);
-            alarmModel.setMinute(minute);
-            alarmModel.setHour(hourOfDay);
-
-
+            editableModel.setMinute(minute);
+            editableModel.setHour(hourOfDay);
         }
     }
 }

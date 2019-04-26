@@ -26,8 +26,6 @@ import java.util.List;
 
 public class AlarmClockService extends LifecycleService {
 
-    private List<AlarmModel> alarmList;
-
     public AlarmClockService() {
     }
 
@@ -37,17 +35,17 @@ public class AlarmClockService extends LifecycleService {
         super.onCreate();
         run(this, AlarmClockReceiver.class, 60);
         startTimeTask();
+
     }
-
-
 
     private void startTimeTask() {
         new Thread(() -> {
             AlarmDBUtils.queryLiveAlarmClock().observe(this, alarmModels -> {
-                alarmList = alarmModels;
-                for (AlarmModel alarm : alarmList) {
+                for (AlarmModel alarm : alarmModels) {
                     if (alarm.enable) {
                         AlarmManagerHelper.startAlarmClock(AlarmClockService.this, alarm.id);
+                    } else {
+                        AlarmManagerHelper.cancelAlarmClock(AlarmClockService.this, alarm.id);
                     }
                 }
             });

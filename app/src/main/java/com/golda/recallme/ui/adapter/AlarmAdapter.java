@@ -63,14 +63,11 @@ public class AlarmAdapter extends RecyclerView.Adapter {
             }
         });
 
-        alarmViewHolder.alarmCardView.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View v) {
-                if (mListener != null) {
-                    mListener.onLongClick(mList.get(position).id);
-                }
-                return false;
+        alarmViewHolder.alarmCardView.setOnLongClickListener(v -> {
+            if (mListener != null) {
+                mListener.onLongClick(mList.get(position).id);
             }
+            return false;
         });
     }
 
@@ -131,14 +128,6 @@ public class AlarmAdapter extends RecyclerView.Adapter {
             switchCompat.setOnCheckedChangeListener((buttonView, isChecked) -> {
                 alarm.setEnable(isChecked);
                 notifyItemChanged(adapterPosition);
-
-                if (isChecked) {
-                    enableTextColor();
-                    AlarmManagerHelper.startAlarmClock(mContext, alarm.id);
-                } else {
-                    disableTextColor();
-                    AlarmManagerHelper.cancelAlarmClock(mContext, alarm.id);
-                }
                 AlarmDBUtils.updateLiveAlarmClock(alarm);
             });
         }
